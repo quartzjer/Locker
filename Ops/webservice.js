@@ -30,7 +30,6 @@ var lconfig = require("lconfig");
 
 var lcrypto = require("lcrypto");
 
-var proxy = new httpProxy.HttpProxy();
 var scheduler = lscheduler.masterScheduler;
 
 var dashboard, devdashboard;
@@ -295,7 +294,7 @@ function proxyRequest(method, req, res) {
     }
     if (!serviceManager.isRunning(id)) {
         console.log("Having to spawn " + id);
-        var buffer = proxy.buffer(req);
+        var buffer = httpProxy.buffer(req);
         serviceManager.spawn(id,function(){
             proxied(method, serviceManager.metaInfo(id),ppath,req,res,buffer);
         });
@@ -444,10 +443,8 @@ locker.all("/socket.io*", function(req, res) {
 locker.on('upgrade', function(req, socket, head) {
     // TODO be selective about who they're routing too?
     console.log("websocket proxying to dashboard");
-  proxy.proxyWebSocketRequest(req, socket, head, {
-      host: url.parse(dashboard.instance.uriLocal).hostname,
-      port: url.parse(dashboard.instance.uriLocal).port,
-  });
+    var proxy = new httpProxy.HttpProxy({target:{host:url.parse(dashboard.instance.uriLocal).hostname, port:url.parse(dashboard.instance.uriLocal).port}});
+    proxy.proxyWebSocketRequest(req, socket, head);
 });
 
 locker.get('/', function(req, res) {
@@ -456,13 +453,10 @@ locker.get('/', function(req, res) {
 
 function proxied(method, svc, ppath, req, res, buffer) {
     if(ppath.substr(0,1) != "/") ppath = "/"+ppath;
-    console.log("proxying " + method + " " + req.url + " to "+ svc.uriLocal + ppath);
+    console.log("proxying " + method + " " + req.url + " to "+ svc.uriLocal + " path " + ppath);
     req.url = ppath;
-    proxy.proxyRequest(req, res, {
-      host: url.parse(svc.uriLocal).hostname,
-      port: url.parse(svc.uriLocal).port,
-      buffer: buffer
-    });
+    var proxy = new httpProxy.HttpProxy({target:{host:url.parse(svc.uriLocal).hostname, port:url.parse(svc.uriLocal).port}});
+    proxy.proxyRequest(req, res, buffer);
 }
 
 
