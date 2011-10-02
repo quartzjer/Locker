@@ -34,7 +34,7 @@ $(document).ready(
         $('#service-closer').click(function() {
             manuallyClosed = true;
             $('#appFrame').animate({height: $('#appFrame').height() + 110}, {duration: 200, queue: false});
-            $('#services').animate({height: "0px"}, {duration: 200, queue: false, complete:function() { 
+            $('#services').animate({height: "0px"}, {duration: 200, queue: false, complete:function() {
                     $('.services-box-container').show();
                     resizeFrame();
                 }
@@ -262,8 +262,8 @@ function renderApp() {
         appId = data[app].id;
         drawServices();
         (function poll (data) {
-            $.getJSON(data[app].url + "ready", function(state) {
-                ready = state;
+            $.getJSON("/Me/" + app + "/state", function(state) {
+                ready = state.count > 0;
                 if (ready) {
                     // log('clearing timeout');
                     $("#appFrame")[0].contentWindow.location.replace(data[app].url);
@@ -291,6 +291,6 @@ function expandServices() {
 }
 
 function resizeFrame() {
-    $('#appFrame').height($(window).height() - $(".services-box-container").height() - $('#services').height() - $('.header').height() - 6);
+    $('#appFrame').height($(window).height() - $('#services').height() - $('.header').height() - 6);
     $("#appFrame").width($(window).width());
 }

@@ -15,7 +15,7 @@ var express = require('express'),
     socketio = require('socket.io'),
     request = require('request');
 var logger = require("logger").logger;
-
+var lutil = require('lutil');
 
 var externalBase;
 var locker;
@@ -38,18 +38,13 @@ app.configure(function() {
     app.use(express.static(__dirname + '/static'));
 });
 
-app.get('/app', 
+app.get('/app',
 function(req, res) {
     var lconfig = require('../../Common/node/lconfig.js');
     lconfig.load('../../Config/config.json');
     var rev = fs.readFileSync(path.join(lconfig.lockerDir, '/../', 'gitrev.json'), 'utf8');
-    var customFooter;
-    if (lconfig.dashboard && lconfig.dashboard.customFooter) {
-        customFooter = fs.readFileSync(__dirname + '/views/' + lconfig.dashboard.customFooter, 'utf8');
-    }
     res.render('app', {
         dashboard: lconfig.dashboard,
-        customFooter: customFooter,
         revision: rev.substring(1,11)
     });
 });
@@ -66,7 +61,7 @@ var io = socketio.listen(app,options);
 app.get('/apps', function(req, res) {
     res.writeHead(200, {'Content-Type': 'application/json'});
     var apps = {contacts: {url : externalBase + '/Me/contactsviewer/', id : 'contactsviewer'},
-                photos: {url : externalBase + '/Me/photosviewer/', id : 'photosviewer'},
+                photos: {url : externalBase + '/Me/photosv09/', id : 'photosv09'},
                 links: {url : externalBase + '/Me/linkalatte/', id : 'linkalatte'},
                 search: {url : externalBase + '/Me/searchapp/', id : 'searchapp'}};
     res.end(JSON.stringify(apps));
@@ -98,7 +93,7 @@ app.post('/event', function(req, res) {
                 evInfo.updated = body.updated;
                 saveState();
             });
-        }, 2000)}(evInfo); // wrap for a new stack w/ evInfo isolated    
+        }, 2000)}(evInfo); // wrap for a new stack w/ evInfo isolated
     }
 });
 
@@ -110,7 +105,7 @@ function saveState()
     for (var key in eventInfo) {
         if (eventInfo.hasOwnProperty(key)) counts[key] = {count:eventInfo[key].count};
     }
-    fs.writeFileSync("state.json", JSON.stringify(counts));
+    lutil.atomicWriteFileSync("state.json", JSON.stringify(counts));
 }
 
 // compare last-sent totals to current ones and send differences
