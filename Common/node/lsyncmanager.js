@@ -195,7 +195,7 @@ function localError(base, err)
 //    var mod = console.outputModule;
 //    console.outputModule = base;
     console.error(base+"\t"+err);
-//    console.outputModule = mod;    
+//    console.outputModule = mod;
 }
 
 function mergeManifest(js) {
@@ -273,7 +273,7 @@ function executeSynclet(info, synclet, callback) {
         info.config = lutil.extend(true, tempInfo.config, response.config);
         scheduleRun(info, synclet);
         processResponse(deleteIDs, info, synclet, response, function(err, cbresponse) {
-            lutil.atomicWriteFileSync(path.join(lconfig.lockerDir, lconfig.me, info.id, 'me.json'), 
+            lutil.atomicWriteFileSync(path.join(lconfig.lockerDir, lconfig.me, info.id, 'me.json'),
                                       JSON.stringify(info, null, 4));
             if (callback) callback(err, cbresponse);
         });
